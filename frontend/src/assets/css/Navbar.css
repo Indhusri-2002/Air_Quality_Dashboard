@@ -1,0 +1,25 @@
+.navbar {
+    background: linear-gradient(120deg, #87b1f6 0%, #a1dcf7 100%);
+}
+
+.navbar-nav .nav-link {
+    transition: ease 0.4s;
+    color: #555;
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.navbar-nav .nav-link:hover {
+    transform: scale(1.1);
+    background-color: #ffffff; /* Change to the color you want on hover */
+    color: #000; /* Change to the color you want on hover */
+}
+  
+/* navBar.css */
+
+.nav-item.active {
+    transform: scale(1.2);
+    color: black !important;
+  }
+
+  
