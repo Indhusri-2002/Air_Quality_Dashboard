@@ -4,16 +4,25 @@ import WeatherCard from "@/components/WeatherCard";
 import Image from "next/image";
 import LoadingScreen from "@/components/LoadingScreen";
 import NoDataFound from "@/components/NoDataFound";
+import { isLoggedIn } from "@/utils/auth";
+import { useRouter } from "next/router";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 const CITY_COORDS = JSON.parse(process.env.CITY_COORDS);
 
 const Home = () => {
+  const router = useRouter();
   const [city, setCity] = useState("Hyderabad");
   const [weatherData, setWeatherData] = useState(null);
   const [error, setError] = useState(null);
   const [customCity, setCustomCity] = useState("");
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isLoggedIn()) {
+      router.replace("/login");
+    }
+  }, []);
 
   // Fetching weather data for the selected or custom city
   const fetchWeather = async () => {

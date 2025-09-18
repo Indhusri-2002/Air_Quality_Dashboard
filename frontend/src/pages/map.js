@@ -54,7 +54,7 @@ export default function Map() {
         const geocodeData = await res.json();
         console.log(geocodeData);
         if (geocodeData?.display_name || geocodeData?.address?.city || geocodeData?.address?.town) {
-          const cityName = geocodeData?.address?.city || geocodeData?.address?.town || geocodeData?.address?.village || "Unknown Location";
+          const cityName = geocodeData?.address?.city || geocodeData?.address?.town || geocodeData?.address?.village || "Current Location";
           setCity(cityName);
         }
       } catch (err) {

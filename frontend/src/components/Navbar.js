@@ -2,10 +2,18 @@ import Link from "next/link";
 import { useRouter } from "next/router"; // Import the router
 import "../assets/css/Navbar.css";
 import Image from "next/image";
+import { isLoggedIn, removeToken } from "@/utils/auth";
 
 function Navbar() {
   const router = useRouter(); // Access the router object to get the current path
+  const loggedIn = isLoggedIn();
 
+  function handleLogout() {
+    removeToken();
+    router.push("/login");
+  }
+
+  if (!loggedIn) return null; // hide navbar if not logged in
   return (
     <>
       <div className="d-flex flex-column">
@@ -84,6 +92,9 @@ function Navbar() {
               >
                 Threshold
               </Link>
+              <button onClick={handleLogout} className="btn btn-danger">
+                Sign out
+              </button>
             </div>
           </div>
         </nav>
