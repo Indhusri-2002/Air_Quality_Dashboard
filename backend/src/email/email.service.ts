@@ -25,15 +25,25 @@ export class EmailService {
   }
 
   // Method to trigger alert
-  async sendEmailAlert(city: string, temperature: number, mail: string) {
-    this.logger.warn(`ALERT! ${city} temperature has exceeded threshold: ${temperature}°C`);
+  async sendEmailAlert(
+    city: string,
+    value: number,
+    mail: string,
+    type: 'TEMP' | 'AQI',
+  ) {
+    this.logger.warn(
+      `ALERT! ${city} temperature has exceeded threshold: ${value}°C`,
+    );
 
     // Example email notification logic
     const mailOptions = {
       from: emailUser,
       to: mail, // Replace with the recipient's email
       subject: `Weather Alert for ${city}`,
-      text: `The temperature in ${city} has exceeded the threshold: ${temperature}°C.`,
+      text:
+        type === 'TEMP'
+          ? `The temperature in ${city} has exceeded the threshold: ${value}°C.`
+          : `The AQI in ${city} has exceeded the threshold: ${value}.`,
     };
 
     try {
@@ -43,5 +53,4 @@ export class EmailService {
       this.logger.error('Error sending alert email:', error);
     }
   }
-
 }

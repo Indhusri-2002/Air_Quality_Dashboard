@@ -6,9 +6,13 @@ import { Cron } from '@nestjs/schedule';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { WeatherData, WeatherDataDocument } from './schemas/weather.schema';
-import { DailySummary, DailySummaryDocument } from './schemas/daily-summary.schema';
+import {
+  DailySummary,
+  DailySummaryDocument,
+} from './schemas/daily-summary.schema';
 import { Threshold, ThresholdDocument } from './schemas/threshold.schema';
 import { EmailService } from 'src/email/email.service';
+import { AirQualityService } from 'src/air-quality/air-quality.service';
 
 interface WeatherAPIResponse {
   main: {
@@ -28,26 +32,33 @@ interface WeatherAPIResponse {
 const configService = ConfigService.getInstance();
 const openWeatherApiKey: string = configService.get('OPENWEATHER_API_KEY');
 const openWeatherApiUrl: string = configService.get('OPENWEATHER_API_URL');
-const cities: string[] = configService.get('CITIES').split(',');
+
+const city_coords_string: string = configService.get('CITY_COORDS');
+const city_coords: Record<string, { lat: number; lon: number }> =
+  JSON.parse(city_coords_string);
 
 @Injectable()
 export class WeatherService {
   private readonly logger = new Logger(WeatherService.name);
 
   constructor(
-    @InjectModel(WeatherData.name) private readonly weatherModel: Model<WeatherDataDocument>,
-    @InjectModel(DailySummary.name) private readonly dailySummaryModel: Model<DailySummaryDocument>,
-    @InjectModel(Threshold.name) private readonly thresholdModel: Model<ThresholdDocument>,  // Inject Threshold model
+    @InjectModel(WeatherData.name)
+    private readonly weatherModel: Model<WeatherDataDocument>,
+    @InjectModel(DailySummary.name)
+    private readonly dailySummaryModel: Model<DailySummaryDocument>,
+    @InjectModel(Threshold.name)
+    private readonly thresholdModel: Model<ThresholdDocument>, // Inject Threshold model
     private readonly emailService: EmailService, // Import the EmailService
-  ) { }
+    private readonly airQualityService: AirQualityService,
+  ) {}
 
   // Cron job to run every 5 minutes
-  @Cron('0 */5 * * * *')  // Runs every 5 minutes
+  @Cron('0 */5 * * * *') // Runs every 5 minutes
   async handleWeatherDataFetch(): Promise<void> {
     this.logger.log('Fetching weather data for cities...');
     await this.fetchWeatherData();
     await this.calculateDailyAggregates();
-    await this.checkThresholds();  // Check thresholds after fetching data
+    await this.checkThresholds(); // Check thresholds after fetching data
   }
 
   async getOpenWeatherData(city: string) {
@@ -67,18 +78,27 @@ export class WeatherService {
 
   // Fetch weather data from OpenWeatherMap API using axios
   async fetchWeatherData(): Promise<void> {
-    for (const city of cities) {
+    for (const [city, coords] of Object.entries(city_coords)) {
       try {
-        const response: AxiosResponse<WeatherAPIResponse> = await axios.get(`${openWeatherApiUrl}/weather`, {
-          params: {
-            q: city,
-            appid: openWeatherApiKey,
+        const aqi = await this.airQualityService.fetchAirQuality(
+          coords.lat,
+          coords.lon,
+        );
+        const response: AxiosResponse<WeatherAPIResponse> = await axios.get(
+          `${openWeatherApiUrl}/weather`,
+          {
+            params: {
+              q: city,
+              appid: openWeatherApiKey,
+            },
           },
-        });
+        );
 
         const data = response.data;
         const temperatureCelsius: number = this.kelvinToCelsius(data.main.temp);
-        const feelsLikeCelsius: number = this.kelvinToCelsius(data.main.feels_like);
+        const feelsLikeCelsius: number = this.kelvinToCelsius(
+          data.main.feels_like,
+        );
         const humidity: number = data.main.humidity;
         const windSpeed: number = data.wind.speed;
 
@@ -89,6 +109,7 @@ export class WeatherService {
           weatherCondition: data.weather[0].main,
           humidity,
           windSpeed,
+          aqi,
           timestamp: new Date(data.dt * 1000),
         };
 
@@ -106,15 +127,19 @@ export class WeatherService {
   }
 
   // Save the weather data to MongoDB
-  private async saveWeatherData(summary: Partial<WeatherDataDocument>): Promise<void> {
+  private async saveWeatherData(
+    summary: Partial<WeatherDataDocument>,
+  ): Promise<void> {
     const newWeatherData = new this.weatherModel(summary);
     await newWeatherData.save();
-    this.logger.log(`Weather data saved for ${summary.city}: ${summary.temperature}°C`);
+    this.logger.log(
+      `Weather data saved for ${summary.city}: ${summary.temperature}°C`,
+    );
   }
 
   // Calculate daily aggregates for each city
   async calculateDailyAggregates(): Promise<void> {
-    for (const city of cities) {
+    for (const [city, _] of Object.entries(city_coords)) {
       const today = new Date();
       const startOfDay = new Date(today.setHours(0, 0, 0, 0));
       const endOfDay = new Date(today.setHours(23, 59, 59, 999));
@@ -130,55 +155,79 @@ export class WeatherService {
       }
 
       // Calculate the daily aggregates
-      const temperatures = weatherData.map(data => data.temperature);
-      const humidities = weatherData.map(data => data.humidity);
-      const windSpeeds = weatherData.map(data => data.windSpeed);
+      const temperatures = weatherData.map((data) => data.temperature);
+      const humidities = weatherData.map((data) => data.humidity);
+      const windSpeeds = weatherData.map((data) => data.windSpeed);
       const maxTemp = Math.max(...temperatures);
       const minTemp = Math.min(...temperatures);
-      const avgTemp = temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
-      const avgHumidity = humidities.reduce((sum, hum) => sum + hum, 0) / humidities.length;
-      const avgWindSpeed = windSpeeds.reduce((sum, speed) => sum + speed, 0) / windSpeeds.length;
-      const dominantCondition = this.calculateDominantWeatherCondition(weatherData);
+      const avgTemp =
+        temperatures.reduce((sum, temp) => sum + temp, 0) / temperatures.length;
+      const avgHumidity =
+        humidities.reduce((sum, hum) => sum + hum, 0) / humidities.length;
+      const avgWindSpeed =
+        windSpeeds.reduce((sum, speed) => sum + speed, 0) / windSpeeds.length;
+      const dominantCondition =
+        this.calculateDominantWeatherCondition(weatherData);
+      const aqiValues = weatherData
+        .map((data) => data.aqi?.aqi)
+        .filter((v) => v !== undefined);
+      const avgAqi =
+        aqiValues.length > 0
+          ? aqiValues.reduce((sum, v) => sum + v, 0) / aqiValues.length
+          : null;
 
       // Create the daily summary
       const dailySummary: Partial<DailySummaryDocument> = {
         city,
-        date: new Date().toISOString().slice(0, 10),  // format YYYY-MM-DD
+        date: new Date().toISOString().slice(0, 10), // format YYYY-MM-DD
         avgTemp,
         maxTemp,
         minTemp,
         dominantCondition,
         avgHumidity,
         avgWindSpeed,
+        avgAqi,
       };
 
       await this.saveDailySummary(dailySummary);
 
-      this.logger.log(`Daily summary for ${city} - Avg Temp: ${avgTemp}°C, Avg Humidity: ${avgHumidity}%, Avg Wind Speed: ${avgWindSpeed} m/s, Dominant Condition: ${dominantCondition}`);
+      this.logger.log(
+        `Daily summary for ${city} - Avg Temp: ${avgTemp}°C, Avg Humidity: ${avgHumidity}%, Avg Wind Speed: ${avgWindSpeed} m/s, Dominant Condition: ${dominantCondition}`,
+      );
     }
   }
 
   // Save the daily summary to MongoDB
-  private async saveDailySummary(summary: Partial<DailySummaryDocument>): Promise<void> {
+  private async saveDailySummary(
+    summary: Partial<DailySummaryDocument>,
+  ): Promise<void> {
     const newDailySummary = new this.dailySummaryModel(summary);
     await newDailySummary.save();
-    this.logger.log(`Daily weather summary saved for ${summary.city}: Avg Temp: ${summary.avgTemp}°C, Avg Humidity: ${summary.avgHumidity}%`);
+    this.logger.log(
+      `Daily weather summary saved for ${summary.city}: Avg Temp: ${summary.avgTemp}°C, Avg Humidity: ${summary.avgHumidity}%`,
+    );
   }
 
   // Calculate the dominant weather condition
-  private calculateDominantWeatherCondition(data: WeatherDataDocument[]): string {
+  private calculateDominantWeatherCondition(
+    data: WeatherDataDocument[],
+  ): string {
     const conditionCount: { [key: string]: number } = {};
     data.forEach((item: WeatherDataDocument) => {
       const condition = item.weatherCondition;
       conditionCount[condition] = (conditionCount[condition] || 0) + 1;
     });
-    return Object.keys(conditionCount).reduce((a, b) => conditionCount[a] > conditionCount[b] ? a : b);
+    return Object.keys(conditionCount).reduce((a, b) =>
+      conditionCount[a] > conditionCount[b] ? a : b,
+    );
   }
 
   // Get the daily summary for a specific city
   async getDailySummary(city: string): Promise<DailySummaryDocument> {
     const today = new Date().toISOString().slice(0, 10);
-    const summary = await this.dailySummaryModel.findOne({ city, date: today }).sort({ createdAt: -1 }); // Sort by createdAt in descending order
+    const summary = await this.dailySummaryModel
+      .findOne({ city, date: today })
+      .sort({ createdAt: -1 }); // Sort by createdAt in descending order
     if (!summary) {
       throw new Error(`No daily summary found for city: ${city}`);
     }
@@ -186,18 +235,25 @@ export class WeatherService {
   }
 
   // Get weather history for the past 'n' days for a specific city
-  async getWeatherHistoryByDate(city: string, date: string): Promise<DailySummaryDocument[]> {
+  async getWeatherHistoryByDate(
+    city: string,
+    date: string,
+  ): Promise<DailySummaryDocument[]> {
     // Fetch the history based on city and date, sorted by creation time (latest first)
-    const history = await this.dailySummaryModel.find({
-      city,
-      date: { $eq: date },
-    }).sort({ createdAt: -1 }); // Sort by 'createdAt' to get the latest records
-  
+    const history = await this.dailySummaryModel
+      .find({
+        city,
+        date: { $eq: date },
+      })
+      .sort({ createdAt: -1 }); // Sort by 'createdAt' to get the latest records
+
     // Throw an error if no records are found
     if (history.length === 0) {
-      throw new Error(`No weather history found for city: ${city} on date: ${date}.`);
+      throw new Error(
+        `No weather history found for city: ${city} on date: ${date}.`,
+      );
     }
-  
+
     return history;
   }
 
@@ -215,8 +271,10 @@ export class WeatherService {
       matchQuery.city = city;
     }
 
-    this.logger.debug(`Fetching weather history for ${city ? city : 'all cities'} from ${pastDate.toISOString()} to ${today.toISOString()}`);
-    
+    this.logger.debug(
+      `Fetching weather history for ${city ? city : 'all cities'} from ${pastDate.toISOString()} to ${today.toISOString()}`,
+    );
+
     try {
       const latestWeatherHistory = await this.dailySummaryModel.aggregate([
         {
@@ -254,17 +312,25 @@ export class WeatherService {
   }
 
   // Method to create threshold
-  async createThreshold(city: string, temperatureThreshold: number, email: string, weatherCondition?: string) {
+  async createThreshold(
+    city: string,
+    email: string,
+    weatherCondition?: string,
+    temperatureThreshold?: number,
+    aqiThreshold?: number,
+  ) {
     try {
       const threshold = new this.thresholdModel({
         city,
         temperatureThreshold,
         weatherCondition,
         email,
+        aqiThreshold,
       });
       return await threshold.save();
     } catch (error) {
-      if (error.code === 11000) {  // MongoDB duplicate key error code
+      if (error.code === 11000) {
+        // MongoDB duplicate key error code
         throw new BadRequestException(
           `A threshold for city "${city}", temperature "${temperatureThreshold}", and email "${email}" already exists.`,
         );
@@ -278,31 +344,68 @@ export class WeatherService {
     const thresholds = await this.thresholdModel.find();
 
     for (const threshold of thresholds) {
-      const latestWeather = await this.weatherModel.findOne({ city: threshold.city }).sort({ timestamp: -1 });
-      if (latestWeather) {
-        // Check if the latest temperature exceeds the threshold
-        if (latestWeather.temperature > threshold.temperatureThreshold) {
-          threshold.breachCount += 1;  // Increment the breach count
+      const latestWeather = await this.weatherModel
+        .findOne({ city: threshold.city })
+        .sort({ timestamp: -1 });
 
-          // If breach count reaches 2, trigger alert
+      if (!latestWeather) continue;
+
+      // === Temperature Threshold ===
+      if (threshold.temperatureThreshold !== undefined) {
+        if (latestWeather.temperature > threshold.temperatureThreshold) {
+          threshold.breachCount++;
           if (threshold.breachCount >= 2) {
-            this.triggerAlert(threshold.city, latestWeather.temperature, threshold.email);  // Use the email from the threshold
-            threshold.breachCount = 0;  // Reset breach count after alerting
+            await this.triggerAlert(
+              threshold.city,
+              latestWeather.temperature,
+              threshold.email,
+              'TEMP',
+            );
+            threshold.breachCount = 0;
           }
         } else {
-          // Reset breach count if the threshold is not breached
           threshold.breachCount = 0;
         }
-        await threshold.save();  // Save the updated breach count
       }
+
+      // === AQI Threshold ===
+      if (threshold.aqiThreshold !== undefined && latestWeather.aqi) {
+        if (latestWeather.aqi.aqi > threshold.aqiThreshold) {
+          threshold.breachCount++;
+          if (threshold.breachCount >= 2) {
+            await this.triggerAlert(
+              threshold.city,
+              latestWeather.aqi.aqi,
+              threshold.email,
+              'AQI',
+            );
+            threshold.breachCount = 0;
+          }
+        } else {
+          threshold.breachCount = 0;
+        }
+      }
+
+      await threshold.save(); // Save the updated breach count
     }
   }
 
   // Method to trigger alert
-  private async triggerAlert(city: string, temperature: number, mailTo: string) {
-    this.logger.warn(`ALERT! ${city} temperature has exceeded threshold: ${temperature}°C`);
+  private async triggerAlert(
+    city: string,
+    value: number,
+    mailTo: string,
+    type: 'TEMP' | 'AQI',
+  ) {
+    if (type === 'TEMP') {
+      this.logger.warn(
+        `ALERT! ${city} temperature has exceeded threshold: ${value}°C`,
+      );
+    } else {
+      this.logger.warn(`ALERT! ${city} AQI has exceeded threshold: ${value}`);
+    }
     // Implement email notification logic here (not included for brevity)
-    return await this.emailService.sendEmailAlert(city, temperature, mailTo);  // Call the email service to send alert
+    return await this.emailService.sendEmailAlert(city, value, mailTo, type); // Call the email service to send alert
   }
 
   // Method to get all thresholds
@@ -314,13 +417,14 @@ export class WeatherService {
   async updateThreshold(
     id: string,
     city: string,
-    temperatureThreshold: number,
     email: string,
     weatherCondition?: string,
+    temperatureThreshold?: number,
+    aqiThreshold?: number,
   ): Promise<ThresholdDocument> {
     const updatedThreshold = await this.thresholdModel.findByIdAndUpdate(
       id,
-      { city, temperatureThreshold, email, weatherCondition },
+      { city, temperatureThreshold, email, weatherCondition, aqiThreshold },
       { new: true }, // Return the updated document
     );
     if (!updatedThreshold) {
@@ -337,5 +441,4 @@ export class WeatherService {
     }
     return deletedThreshold;
   }
-
 }

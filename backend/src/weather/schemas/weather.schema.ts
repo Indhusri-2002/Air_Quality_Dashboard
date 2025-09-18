@@ -5,6 +5,24 @@ import { Document } from 'mongoose';
 export type WeatherDataDocument = WeatherData & Document;
 
 @Schema()
+export class AQI {
+  @Prop({ required: true })
+  lat: number;
+
+  @Prop({ required: true })
+  lon: number;
+
+  @Prop({ required: true })
+  aqi: number;
+
+  @Prop({ type: Object, required: true })
+  components: Record<string, number>; // PM2.5, PM10, etc.
+
+  @Prop({ required: true })
+  timestamp: Date;
+}
+
+@Schema()
 export class WeatherData {
   @Prop({ required: true })
   city: string;
@@ -26,6 +44,9 @@ export class WeatherData {
 
   @Prop({ required: true })
   timestamp: Date;
+
+  @Prop({ type: AQI, required: false })
+  aqi: AQI;  // Embedded AQI object
 
   // Index to auto-delete documents after 7 days
   @Prop({ default: Date.now, expires: 604800 }) // 604800 seconds = 7 days

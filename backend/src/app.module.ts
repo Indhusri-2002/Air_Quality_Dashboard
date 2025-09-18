@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { WeatherModule } from './weather/weather.module';
 import { ConfigService } from './config/config.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AirQualityModule } from './air-quality/air-quality.module';
 
 const configService = ConfigService.getInstance();
 const mongoURI = configService.get('MONGO_URI');
@@ -11,7 +12,8 @@ const mongoURI = configService.get('MONGO_URI');
   imports: [
     MongooseModule.forRoot(mongoURI),
     ScheduleModule.forRoot(),
-    WeatherModule
+    WeatherModule,
+    AirQualityModule
   ],
 })
 export class AppModule {}

@@ -1,9 +1,19 @@
-import { Controller, Get, Query, Param, BadRequestException, Post, Body, Patch, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  BadRequestException,
+  Post,
+  Body,
+  Patch,
+  Delete,
+} from '@nestjs/common';
 import { WeatherService } from './weather.service';
 
 @Controller('weather')
 export class WeatherController {
-  constructor(private readonly weatherService: WeatherService) { }
+  constructor(private readonly weatherService: WeatherService) {}
 
   @Get('city/:city')
   async getOpenWeatherData(@Param('city') city: string) {
@@ -24,7 +34,10 @@ export class WeatherController {
 
   // GET weather history for a specific city and number of days
   @Get('history-date')
-  async getWeatherHistoryByDate(@Query('city') city: string, @Query('date') date: string) {
+  async getWeatherHistoryByDate(
+    @Query('city') city: string,
+    @Query('date') date: string,
+  ) {
     if (!city || !date) {
       throw new BadRequestException('City name and date are required');
     }
@@ -35,7 +48,7 @@ export class WeatherController {
   @Get('/latest-history')
   async getLatestWeatherHistory(
     @Query('days') days: number,
-    @Query('city') city?: string // Optional city parameter
+    @Query('city') city?: string, // Optional city parameter
   ) {
     return this.weatherService.getLatestWeatherHistory(days, city);
   }
@@ -45,10 +58,17 @@ export class WeatherController {
   async createThreshold(
     @Body('city') city: string,
     @Body('temperatureThreshold') temperatureThreshold: number,
+    @Body('aqiThreshold') aqiThreshold: number,
     @Body('email') email: string,
-    @Body('weatherCondition') weatherCondition?: string,  // Optional
+    @Body('weatherCondition') weatherCondition?: string, // Optional
   ) {
-    return this.weatherService.createThreshold(city, temperatureThreshold, email, weatherCondition);
+    return this.weatherService.createThreshold(
+      city,
+      email,
+      weatherCondition,
+      temperatureThreshold,
+      aqiThreshold,
+    );
   }
 
   // GET endpoint to fetch all thresholds
@@ -62,11 +82,19 @@ export class WeatherController {
   async updateThreshold(
     @Param('id') id: string,
     @Body('city') city: string,
-    @Body('temperatureThreshold') temperatureThreshold: number,
     @Body('email') email: string,
     @Body('weatherCondition') weatherCondition?: string, // Optional
+    @Body('temperatureThreshold') temperatureThreshold?: number,
+    @Body('aqiThreshold') aqiThreshold?: number,
   ) {
-    return await this.weatherService.updateThreshold(id, city, temperatureThreshold, email, weatherCondition);
+    return await this.weatherService.updateThreshold(
+      id,
+      city,
+      email,
+      weatherCondition,
+      temperatureThreshold,
+      aqiThreshold
+    );
   }
 
   // DELETE endpoint to remove a threshold by ID
@@ -74,5 +102,4 @@ export class WeatherController {
   async deleteThreshold(@Param('id') id: string) {
     return await this.weatherService.deleteThreshold(id);
   }
-
 }

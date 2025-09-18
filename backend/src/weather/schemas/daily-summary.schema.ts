@@ -30,6 +30,9 @@ export class DailySummary {
   @Prop({ required: true })
   avgWindSpeed: number;  // New field for average wind speed
 
+  @Prop({ required: true })
+  avgAqi: number;  // New field for average AQI
+
   // Index to auto-delete documents after 7 days
   @Prop({ default: Date.now, expires: 604800 }) // 604800 seconds = 7 days
   createdAt: Date;

@@ -8,6 +8,7 @@ import { WeatherData, WeatherDataSchema } from './schemas/weather.schema';
 import { DailySummary, DailySummarySchema } from './schemas/daily-summary.schema';
 import { EmailService } from '../email/email.service';
 import { Threshold, ThresholdSchema } from './schemas/threshold.schema';
+import { AirQualityService } from 'src/air-quality/air-quality.service';
 
 @Module({
   imports: [
@@ -18,6 +19,6 @@ import { Threshold, ThresholdSchema } from './schemas/threshold.schema';
     ]),
   ],
   controllers: [WeatherController],
-  providers: [WeatherService,EmailService],
+  providers: [WeatherService,EmailService,AirQualityService],
 })
 export class WeatherModule {}
