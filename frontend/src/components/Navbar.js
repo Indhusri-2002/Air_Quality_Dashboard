@@ -24,7 +24,12 @@ function Navbar() {
               height={50}
               className="me-3"
             />
-            <div className="nav-item text-light nav-link " style={{fontWeight:400,fontSize:26}}>Weather Monitoring</div>
+            <div
+              className="nav-item text-light nav-link "
+              style={{ fontWeight: 400, fontSize: 26 }}
+            >
+              Weather Monitoring
+            </div>
           </Link>
           <button
             type="button"
@@ -48,6 +53,17 @@ function Navbar() {
               </Link>
 
               <Link
+                href="/map"
+                className={`nav-item nav-link btn ${
+                  router.pathname === "/map"
+                    ? "focus-ring focus-ring-light active"
+                    : ""
+                }`}
+              >
+                Air Quality
+              </Link>
+
+              <Link
                 href="/history"
                 className={`nav-item nav-link btn ${
                   router.pathname === "/history"
@@ -55,7 +71,7 @@ function Navbar() {
                     : ""
                 }`}
               >
-                History 
+                History
               </Link>
 
               <Link

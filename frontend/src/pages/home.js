@@ -6,8 +6,7 @@ import LoadingScreen from "@/components/LoadingScreen";
 import NoDataFound from "@/components/NoDataFound";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
-// Fetch cities and weather conditions from environment variables
-const cities = process.env.CITIES.split(",");
+const CITY_COORDS = JSON.parse(process.env.CITY_COORDS);
 
 const Home = () => {
   const [city, setCity] = useState("Hyderabad");
@@ -100,9 +99,9 @@ const Home = () => {
             }}
           >
             <option value={"select city"}>select city</option>
-            {cities.map((city) => (
-              <option key={city} value={city}>
-                {city}
+            {Object.entries(CITY_COORDS).map(([cityName, coords]) => (
+              <option key={cityName} value={cityName}>
+                {cityName}
               </option>
             ))}
           </select>
@@ -120,7 +119,9 @@ const Home = () => {
         </div>
       ) : (
         <div className="w-100 mt-4">
-          <NoDataFound message={`No weather details found for the entered city.`} />
+          <NoDataFound
+            message={`No weather details found for the entered city.`}
+          />
         </div>
       )}
     </div>

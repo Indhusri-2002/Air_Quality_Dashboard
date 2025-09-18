@@ -4,7 +4,7 @@ function LoadingScreen() {
   return (
     <div
       className="d-flex justify-content-center align-items-center rounded w-100"
-      style={{ backgroundColor: "white", height: "50vh" }}
+      style={{ backgroundColor: "white", color: "black", height: "100vh" }}
     >
       <Image
         src={`/LoadingWeather.gif`}
@@ -13,7 +13,7 @@ function LoadingScreen() {
         height={50}
         className="me-2"
       />{" "}
-      Loading....
+      Loading...
     </div>
   );
 }

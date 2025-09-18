@@ -19,15 +19,9 @@ const nextConfig = {
     // load environment variables
     env: {
         BACKEND_API_URL: process.env.BACKEND_API_URL,
-        CITIES: process.env.CITIES,
+        CITY_COORDS: process.env.CITY_COORDS,
         WEATHER_CONDITIONS: process.env.WEATHER_CONDITIONS,
     }
 };
-
-console.log(`Environment Variable - BACKEND_API_URL: ${process.env.BACKEND_API_URL}`);
-console.log(`Environment Variable - CITIES: ${process.env.CITIES}`);
-console.log(`Environment Variable - WEATHER_CONDITIONS: ${process.env.WEATHER_CONDITIONS}`);
-
-
 
 export default nextConfig;

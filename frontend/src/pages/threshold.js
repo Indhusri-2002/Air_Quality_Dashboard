@@ -13,8 +13,7 @@ import Image from "next/image";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 
-// Fetch cities and weather conditions from environment variables
-const cities = process.env.CITIES.split(",");
+const CITY_COORDS = JSON.parse(process.env.CITY_COORDS);
 const weatherConditions = process.env.WEATHER_CONDITIONS.split(",");
 
 const ThresholdManagement = () => {
@@ -23,6 +22,7 @@ const ThresholdManagement = () => {
   const [newThreshold, setNewThreshold] = useState({
     city: "",
     temperatureThreshold: "",
+    aqiThreshold: "",
     email: "",
     weatherCondition: "",
     unit: "Celsius",
@@ -70,6 +70,7 @@ const ThresholdManagement = () => {
     setNewThreshold({
       city: threshold.city,
       temperatureThreshold: threshold.temperatureThreshold,
+      aqiThreshold: threshold.aqiThreshold,
       email: threshold.email,
       weatherCondition: threshold.weatherCondition || "",
       unit: "Celsius",
@@ -211,6 +212,11 @@ const ThresholdManagement = () => {
                     {threshold.temperatureThreshold}°C
                     <br />
                     <span style={{ fontWeight: 500, marginRight: "3%" }}>
+                      AQI Threshold:
+                    </span>{" "}
+                    {threshold.aqiThreshold || "None"}
+                    <br />
+                    <span style={{ fontWeight: 500, marginRight: "3%" }}>
                       Email:
                     </span>{" "}
                     {threshold.email}
@@ -251,7 +257,7 @@ const ThresholdManagement = () => {
                   <ThresholdForm
                     newThreshold={newThreshold}
                     setNewThreshold={setNewThreshold}
-                    cities={cities}
+                    cities={Object.keys(CITY_COORDS)}
                     weatherConditions={weatherConditions}
                   />
                 </form>
@@ -302,7 +308,7 @@ const ThresholdManagement = () => {
                   <ThresholdForm
                     newThreshold={newThreshold}
                     setNewThreshold={setNewThreshold}
-                    cities={cities}
+                    cities={Object.keys(CITY_COORDS)}
                     weatherConditions={weatherConditions}
                   />
                 </form>
