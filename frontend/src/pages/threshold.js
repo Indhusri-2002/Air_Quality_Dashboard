@@ -10,6 +10,7 @@ import {
 import Swal from "sweetalert2";
 import ThresholdForm from "@/components/thresholdForm";
 import Image from "next/image";
+import { getToken } from "@/utils/auth";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL;
 
@@ -23,7 +24,6 @@ const ThresholdManagement = () => {
     city: "",
     temperatureThreshold: "",
     aqiThreshold: "",
-    email: "",
     weatherCondition: "",
     unit: "Celsius",
   });
@@ -36,7 +36,13 @@ const ThresholdManagement = () => {
 
   const fetchThresholds = async () => {
     try {
-      const response = await axios.get(`${BACKEND_API_URL}/weather/thresholds`);
+      const token = getToken();
+      const response = await axios.get(
+        `${BACKEND_API_URL}/weather/thresholds`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setThresholds(response.data);
     } catch (error) {
       Swal.fire("Error", "Failed to fetch thresholds", "error");
@@ -55,7 +61,10 @@ const ThresholdManagement = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`${BACKEND_API_URL}/weather/threshold/${id}`);
+          const token = getToken();
+          await axios.delete(`${BACKEND_API_URL}/weather/threshold/${id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           Swal.fire("Success", "Threshold deleted successfully!", "success");
           fetchThresholds();
         } catch (error) {
@@ -71,7 +80,6 @@ const ThresholdManagement = () => {
       city: threshold.city,
       temperatureThreshold: threshold.temperatureThreshold,
       aqiThreshold: threshold.aqiThreshold,
-      email: threshold.email,
       weatherCondition: threshold.weatherCondition || "",
       unit: "Celsius",
     });
@@ -85,12 +93,11 @@ const ThresholdManagement = () => {
         tempInCelsius = newThreshold.temperatureThreshold - 273.15;
       }
 
+      const token = getToken();
       await axios.patch(
         `${BACKEND_API_URL}/weather/threshold/${editingThreshold._id}`,
-        {
-          ...newThreshold,
-          temperatureThreshold: tempInCelsius,
-        }
+        { ...newThreshold, temperatureThreshold: tempInCelsius },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       Swal.fire("Success", "Threshold updated successfully!", "success");
@@ -109,16 +116,18 @@ const ThresholdManagement = () => {
         tempInCelsius = newThreshold.temperatureThreshold - 273.15;
       }
 
-      await axios.post(`${BACKEND_API_URL}/weather/threshold`, {
-        ...newThreshold,
-        temperatureThreshold: tempInCelsius,
-      });
+      const token = getToken();
+      await axios.post(
+        `${BACKEND_API_URL}/weather/threshold`,
+        { ...newThreshold, temperatureThreshold: tempInCelsius },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
       Swal.fire("Success", "Threshold created successfully!", "success");
       setNewThreshold({
         city: "",
         temperatureThreshold: "",
-        email: "",
+        aqiThreshold: "",
         weatherCondition: "",
         unit: "Celsius",
       });
@@ -166,7 +175,6 @@ const ThresholdManagement = () => {
             setNewThreshold({
               city: "",
               temperatureThreshold: "",
-              email: "",
               weatherCondition: "",
               unit: "Celsius",
             });
@@ -215,11 +223,6 @@ const ThresholdManagement = () => {
                       AQI Threshold:
                     </span>{" "}
                     {threshold.aqiThreshold || "None"}
-                    <br />
-                    <span style={{ fontWeight: 500, marginRight: "3%" }}>
-                      Email:
-                    </span>{" "}
-                    {threshold.email}
                     <br />
                     <span style={{ fontWeight: 500, marginRight: "3%" }}>
                       Weather Condition:

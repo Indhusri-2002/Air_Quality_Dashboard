@@ -77,21 +77,6 @@ const ThresholdForm = ({
     </div>
 
     <div className="mb-3">
-      <label htmlFor="email" className="form-label">
-        Email for Alerts
-      </label>
-      <input
-        type="email"
-        className="form-control"
-        value={newThreshold.email}
-        onChange={(e) =>
-          setNewThreshold({ ...newThreshold, email: e.target.value })
-        }
-        required
-      />
-    </div>
-
-    <div className="mb-3">
       <label htmlFor="weatherCondition" className="form-label">
         Weather Condition
       </label>

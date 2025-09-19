@@ -314,7 +314,7 @@ export class WeatherService {
   // Method to create threshold
   async createThreshold(
     city: string,
-    email: string,
+    userEmail: string, 
     weatherCondition?: string,
     temperatureThreshold?: number,
     aqiThreshold?: number,
@@ -324,7 +324,7 @@ export class WeatherService {
         city,
         temperatureThreshold,
         weatherCondition,
-        email,
+        email: userEmail,
         aqiThreshold,
       });
       return await threshold.save();
@@ -332,7 +332,7 @@ export class WeatherService {
       if (error.code === 11000) {
         // MongoDB duplicate key error code
         throw new BadRequestException(
-          `A threshold for city "${city}", temperature "${temperatureThreshold}", and email "${email}" already exists.`,
+          `A threshold for city "${city}", temperature "${temperatureThreshold}", and email "${userEmail}" already exists.`,
         );
       }
       throw error;
@@ -409,22 +409,22 @@ export class WeatherService {
   }
 
   // Method to get all thresholds
-  async getAllThresholds(): Promise<ThresholdDocument[]> {
-    return await this.thresholdModel.find().exec();
+  async getAllThresholds(userEmail: string): Promise<ThresholdDocument[]> {
+    return await this.thresholdModel.find({ email: userEmail }).exec();
   }
 
   // Method to update a threshold by ID
   async updateThreshold(
     id: string,
     city: string,
-    email: string,
+    userEmail: string,
     weatherCondition?: string,
     temperatureThreshold?: number,
     aqiThreshold?: number,
   ): Promise<ThresholdDocument> {
-    const updatedThreshold = await this.thresholdModel.findByIdAndUpdate(
-      id,
-      { city, temperatureThreshold, email, weatherCondition, aqiThreshold },
+    const updatedThreshold = await this.thresholdModel.findOneAndUpdate(
+      { _id: id, email: userEmail },
+      { city, temperatureThreshold, weatherCondition, aqiThreshold },
       { new: true }, // Return the updated document
     );
     if (!updatedThreshold) {
@@ -434,11 +434,14 @@ export class WeatherService {
   }
 
   // Method to delete a threshold by ID
-  async deleteThreshold(id: string): Promise<ThresholdDocument> {
-    const deletedThreshold = await this.thresholdModel.findByIdAndDelete(id);
-    if (!deletedThreshold) {
-      throw new Error(`Threshold with ID ${id} not found.`);
-    }
-    return deletedThreshold;
-  }
+ async deleteThreshold(id: string, userEmail: string): Promise<ThresholdDocument> {
+   const deletedThreshold = await this.thresholdModel.findOneAndDelete({
+     _id: id,
+     email: userEmail,
+   });
+   if (!deletedThreshold) {
+     throw new Error(`Threshold with ID ${id} not found or you do not have permission.`);
+   }
+   return deletedThreshold;
+ }
 }

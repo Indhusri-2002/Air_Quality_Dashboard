@@ -8,8 +8,11 @@ import {
   Body,
   Patch,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { WeatherService } from './weather.service';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('weather')
 export class WeatherController {
@@ -54,17 +57,18 @@ export class WeatherController {
   }
 
   // POST endpoint to create a threshold
+  @UseGuards(AuthGuard('jwt'))
   @Post('threshold')
   async createThreshold(
+    @Req() req,  
     @Body('city') city: string,
     @Body('temperatureThreshold') temperatureThreshold: number,
     @Body('aqiThreshold') aqiThreshold: number,
-    @Body('email') email: string,
     @Body('weatherCondition') weatherCondition?: string, // Optional
   ) {
     return this.weatherService.createThreshold(
       city,
-      email,
+      req.user.email,
       weatherCondition,
       temperatureThreshold,
       aqiThreshold,
@@ -72,17 +76,19 @@ export class WeatherController {
   }
 
   // GET endpoint to fetch all thresholds
+  @UseGuards(AuthGuard('jwt'))
   @Get('thresholds')
-  async getAllThresholds() {
-    return await this.weatherService.getAllThresholds();
+  async getAllThresholds(@Req() req) {
+    return await this.weatherService.getAllThresholds(req.user.email);
   }
 
   // PATCH endpoint to update a threshold by ID
+  @UseGuards(AuthGuard('jwt'))
   @Patch('threshold/:id')
   async updateThreshold(
+    @Req() req,
     @Param('id') id: string,
     @Body('city') city: string,
-    @Body('email') email: string,
     @Body('weatherCondition') weatherCondition?: string, // Optional
     @Body('temperatureThreshold') temperatureThreshold?: number,
     @Body('aqiThreshold') aqiThreshold?: number,
@@ -90,7 +96,7 @@ export class WeatherController {
     return await this.weatherService.updateThreshold(
       id,
       city,
-      email,
+      req.user.email,
       weatherCondition,
       temperatureThreshold,
       aqiThreshold
@@ -98,8 +104,9 @@ export class WeatherController {
   }
 
   // DELETE endpoint to remove a threshold by ID
+  @UseGuards(AuthGuard('jwt'))
   @Delete('threshold/:id')
-  async deleteThreshold(@Param('id') id: string) {
-    return await this.weatherService.deleteThreshold(id);
+  async deleteThreshold(@Req() req, @Param('id') id: string) {
+    return await this.weatherService.deleteThreshold(id , req.user.email);
   }
 }
