@@ -2,19 +2,16 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import "../assets/css/Navbar.css";
 import Image from "next/image";
-import { isLoggedIn, removeToken } from "@/utils/auth";
+import { removeToken } from "@/utils/auth";
 import { useState, useEffect } from "react";
 
 function Navbar() {
   const router = useRouter();
-  const [loggedIn, setLoggedIn] = useState(false); // default false
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Run only on client
-    setLoggedIn(isLoggedIn());
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -34,8 +31,6 @@ function Navbar() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
-
-  if (!loggedIn) return null;
 
   return (
     <>
