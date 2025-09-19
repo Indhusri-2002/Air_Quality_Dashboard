@@ -1,107 +1,189 @@
 import Link from "next/link";
-import { useRouter } from "next/router"; // Import the router
+import { useRouter } from "next/router";
 import "../assets/css/Navbar.css";
 import Image from "next/image";
 import { isLoggedIn, removeToken } from "@/utils/auth";
+import { useState, useEffect } from "react";
 
 function Navbar() {
-  const router = useRouter(); // Access the router object to get the current path
+  const router = useRouter();
   const loggedIn = isLoggedIn();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   function handleLogout() {
     removeToken();
     router.push("/login");
   }
 
-  if (!loggedIn) return null; // hide navbar if not logged in
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  if (!loggedIn) return null;
+
   return (
     <>
-      <div className="d-flex flex-column">
-        <nav
-          className="navbar navbar-expand-lg sticky-top p-1 wow fadeIn"
-          data-wow-delay="0.1s"
-        >
-          <Link
-            href={"/home"}
-            className="navbar-brand text-light d-flex align-items-center px-4 px-lg-5"
-          >
-            <Image
-              src={`/Clouds.png`}
-              alt="weather icon"
-              width={50}
-              height={50}
-              className="me-3"
-            />
-            <div
-              className="nav-item text-light nav-link "
-              style={{ fontWeight: 400, fontSize: 26 }}
-            >
-              Weather Monitoring
+      <nav className={`modern-navbar ${isScrolled ? 'scrolled' : ''}`}>
+        <div className="navbar-container">
+          {/* Brand Section */}
+          <Link href="/home" className="navbar-brand" onClick={closeMobileMenu}>
+            <div className="brand-icon">
+              <Image
+                src="/Clouds.png"
+                alt="weather icon"
+                width={45}
+                height={45}
+                className="brand-image"
+              />
+            </div>
+            <div className="brand-text">
+              <span className="brand-title">AirWatch</span>
+              <span className="brand-subtitle">Weather & Air Quality</span>
             </div>
           </Link>
-          <button
-            type="button"
-            className="navbar-toggler me-4"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarCollapse"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-          <div className="collapse navbar-collapse" id="navbarCollapse">
-            <div className="navbar-nav ms-auto me-2 p-2" style={{ gap: 10 }}>
+
+          {/* Desktop Navigation Links */}
+          <div className="desktop-nav">
+            <div className="navbar-nav">
               <Link
                 href="/home"
-                className={`nav-item nav-link btn ${
-                  router.pathname === "/home"
-                    ? "focus-ring focus-ring-light active"
-                    : ""
-                }`}
-                style = {{
-                  fontSize : "16px"
-                }} 
+                className={`nav-link ${router.pathname === "/home" ? "active" : ""}`}
               >
-                Home
+                <span>Home</span>
               </Link>
 
               <Link
                 href="/map"
-                className={`nav-item nav-link btn ${
-                  router.pathname === "/map"
-                    ? "focus-ring focus-ring-light active"
-                    : ""
-                }`}
+                className={`nav-link ${router.pathname === "/map" ? "active" : ""}`}
               >
-                Air Quality
+                <span>Air Quality</span>
               </Link>
 
               <Link
                 href="/history"
-                className={`nav-item nav-link btn ${
-                  router.pathname === "/history"
-                    ? "focus-ring focus-ring-light active"
-                    : ""
-                }`}
+                className={`nav-link ${router.pathname === "/history" ? "active" : ""}`}
               >
-                History
+                <span>History</span>
               </Link>
 
               <Link
                 href="/threshold"
-                className={`nav-item nav-link btn ${
-                  router.pathname === "/threshold"
-                    ? "focus-ring focus-ring-light active"
-                    : ""
-                }`}
+                className={`nav-link ${router.pathname === "/threshold" ? "active" : ""}`}
               >
-                Threshold
+                <span>Threshold</span>
               </Link>
-              <button onClick={handleLogout} className="btn btn-danger">
-                Sign out
+
+              <button onClick={handleLogout} className="logout-btn">
+                <span>Sign Out</span>
               </button>
             </div>
           </div>
-        </nav>
-      </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className={`mobile-toggle ${isMobileMenuOpen ? 'active' : ''}`}
+            type="button"
+            onClick={toggleMobileMenu}
+            aria-controls="mobileMenu"
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle navigation"
+          >
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+            <span className="hamburger-line"></span>
+          </button>
+
+          {/* Mobile Navigation Menu */}
+          <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`} id="mobileMenu">
+            <div className="mobile-menu-overlay" onClick={closeMobileMenu}></div>
+            <div className="mobile-menu-content">
+              <div className="mobile-menu-header">
+                <div className="mobile-brand">
+                  <div className="brand-icon">
+                    <Image
+                      src="/Clouds.png"
+                      alt="weather icon"
+                      width={35}
+                      height={35}
+                      className="brand-image"
+                    />
+                  </div>
+                  <span className="mobile-brand-title">AirWatch</span>
+                </div>
+                <button className="close-btn" onClick={closeMobileMenu}>
+                  <span>✕</span>
+                </button>
+              </div>
+              
+              <div className="mobile-nav-links">
+                <Link
+                  href="/home"
+                  className={`mobile-nav-link ${router.pathname === "/home" ? "active" : ""}`}
+                  onClick={closeMobileMenu}
+                >
+
+                  <span>Home</span>
+                  <i className="arrow-icon">→</i>
+                </Link>
+
+                <Link
+                  href="/map"
+                  className={`mobile-nav-link ${router.pathname === "/map" ? "active" : ""}`}
+                  onClick={closeMobileMenu}
+                >
+
+                  <span>Air Quality</span>
+                  <i className="arrow-icon">→</i>
+                </Link>
+
+                <Link
+                  href="/history"
+                  className={`mobile-nav-link ${router.pathname === "/history" ? "active" : ""}`}
+                  onClick={closeMobileMenu}
+                >
+
+                  <span>History</span>
+                  <i className="arrow-icon">→</i>
+                </Link>
+
+                <Link
+                  href="/threshold"
+                  className={`mobile-nav-link ${router.pathname === "/threshold" ? "active" : ""}`}
+                  onClick={closeMobileMenu}
+                >
+
+                  <span>Threshold</span>
+                  <i className="arrow-icon">→</i>
+                </Link>
+
+                <button 
+                  onClick={() => {
+                    handleLogout();
+                    closeMobileMenu();
+                  }} 
+                  className="mobile-logout-btn"
+                >
+                  <span>Sign Out</span>
+                  <i className="arrow-icon">→</i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
     </>
   );
 }

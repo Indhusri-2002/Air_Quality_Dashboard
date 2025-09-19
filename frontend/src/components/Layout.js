@@ -1,12 +1,13 @@
 import Navbar from "./Navbar"; 
+import "../assets/css/Layout.css";
 
 const Layout = ({ children }) => {
   return (
-    <div>
-      <header>
+    <div className="app-layout">
+      <header className="app-header">
         <Navbar />
       </header>
-      <main>{children}</main>
+      <main className="app-main">{children}</main>
     </div>
   );
 };
