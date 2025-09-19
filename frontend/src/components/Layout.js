@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
       <header className="app-header">
         {shouldShowNavbar && <Navbar />}
       </header>
-      <main className="app-main" style={{ paddingTop: "80px" }}>{children}</main>
+      <main className="app-main" style={{ paddingTop: shouldShowNavbar? "80px" : 0 }}>{children}</main>
     </div>
   );
 };
