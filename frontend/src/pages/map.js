@@ -19,6 +19,7 @@ export default function Map() {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingAQI, setIsLoadingAQI] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState(null);
+  const [place, setPlace] = useState("-");
 
   // Get user location on mount
   useEffect(() => {
@@ -56,6 +57,8 @@ export default function Map() {
         if (geocodeData?.display_name || geocodeData?.address?.city || geocodeData?.address?.town) {
           const cityName = geocodeData?.address?.city || geocodeData?.address?.town || geocodeData?.address?.village || "Current Location";
           setCity(cityName);
+          setPlace(geocodeData.display_name);
+          
         }
       } catch (err) {
         console.error(err);
@@ -133,9 +136,8 @@ export default function Map() {
       <div className="header-section">
         <div className="header-content">
           <div className="title-section">
-            <div className="app-icon">🌍</div>
             <div>
-              <h1>AirAware</h1>
+              <h1>AQI</h1>
               <p className="subtitle">Real-time Air Quality Monitoring</p>
             </div>
           </div>
@@ -188,7 +190,7 @@ export default function Map() {
           {/* AQI Data Section - Left */}
           <div className="aqi-section">
             <div className="section-header">
-              <h2>🌬️ Air Quality Data</h2>
+              <h2> Air Quality Data</h2>
               <div className="location-info">
                 {isLoadingAQI ? (
                   <div className="loading-location">
@@ -201,7 +203,7 @@ export default function Map() {
               </div>
             </div>
             <div className="aqi-content">
-              <AQIDisplay aqiData={aqiData} city={city} />
+              <AQIDisplay aqiData={aqiData} city={city} place={place} />
             </div>
           </div>
 

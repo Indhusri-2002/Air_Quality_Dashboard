@@ -1,6 +1,6 @@
 import { getAQILevel, pollutantInfo, formatTimestamp } from '../utils/aqiUtils';
 
-export default function AQIDisplay({ aqiData, city }) {
+export default function AQIDisplay({ aqiData, city, place }) {
   if (!aqiData) {
     return (
       <div className="loading-container">
@@ -46,6 +46,7 @@ export default function AQIDisplay({ aqiData, city }) {
         <div className="aqi-header">
           <div className="location-info">
             <h2>🌍 {city}</h2>
+            <h5> {place}</h5>
             <p className="timestamp">Updated: {formatTimestamp(aqiData.timestamp)}</p>
           </div>
           <div className="aqi-badge">

@@ -56,6 +56,9 @@ function Navbar() {
                     ? "focus-ring focus-ring-light active"
                     : ""
                 }`}
+                style = {{
+                  fontSize : "16px"
+                }} 
               >
                 Home
               </Link>
