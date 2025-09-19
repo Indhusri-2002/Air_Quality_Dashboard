@@ -58,19 +58,7 @@ const Home = () => {
 
   return (
     <div className="container my-5 d-flex flex-column align-items-center">
-      <div className="d-flex flex-row justify-content-between align-items-center mb-5 w-100">
-        <div className="d-flex flex-row align-items-center">
-          <Image
-            src={`/WeatherHeader.gif`}
-            alt="header"
-            width={55}
-            height={55}
-            className="me-2"
-          />
-          <div style={{ fontWeight: "400", fontSize: 38 }}>
-            Weather Dashboard
-          </div>
-        </div>
+      <div className="d-flex flex-row justify-content-end align-items-center gap-5 mb-5 w-100" style={{ maxWidth: "900px" }}>
         {/* Show the custom city input only if "Other" is selected */}
         <div className="d-flex flex-row gap-2 align-items-center">
           <input

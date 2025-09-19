@@ -7,16 +7,19 @@ import { useState, useEffect } from "react";
 
 function Navbar() {
   const router = useRouter();
-  const loggedIn = isLoggedIn();
+  const [loggedIn, setLoggedIn] = useState(false); // default false
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // Run only on client
+    setLoggedIn(isLoggedIn());
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   function handleLogout() {
@@ -50,8 +53,8 @@ function Navbar() {
               />
             </div>
             <div className="brand-text">
-              <span className="brand-title">AirWatch</span>
-              <span className="brand-subtitle">Weather & Air Quality</span>
+              <span className="brand-title">AtmoIQ</span>
+              <span className="brand-subtitle">Smart insights for weather, air, and carbon</span>
             </div>
           </Link>
 
