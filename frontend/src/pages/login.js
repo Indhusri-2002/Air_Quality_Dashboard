@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { saveToken, isLoggedIn } from "@/utils/auth";
 
+const BACKEND_API_URL = process.env.BACKEND_API_URL;
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -16,7 +18,7 @@ export default function LoginPage() {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const res = await fetch("http://localhost:3000/auth/login", {
+      const res = await fetch(`${BACKEND_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
