@@ -78,6 +78,13 @@ function Navbar() {
               </Link>
 
               <Link
+                href="/ecoActions"
+                className={`nav-link ${router.pathname === "/ecoActions" ? "active" : ""}`}
+              >
+                <span>Eco Actions</span>
+              </Link>
+
+              <Link
                 href="/threshold"
                 className={`nav-link ${router.pathname === "/threshold" ? "active" : ""}`}
               >
@@ -154,6 +161,16 @@ function Navbar() {
                 >
 
                   <span>History</span>
+                  <i className="arrow-icon">→</i>
+                </Link>
+
+                <Link
+                  href="/ecoActions"
+                  className={`mobile-nav-link ${router.pathname === "/ecoActions" ? "active" : ""}`}
+                  onClick={closeMobileMenu}
+                >
+
+                  <span>Eco Actions</span>
                   <i className="arrow-icon">→</i>
                 </Link>
 

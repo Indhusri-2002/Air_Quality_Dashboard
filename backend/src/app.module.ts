@@ -5,6 +5,7 @@ import { ConfigService } from './config/config.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AirQualityModule } from './air-quality/air-quality.module';
 import { AuthModule } from './auth/auth.module';
+import { EcoModule } from './eco/eco.module';
 
 const configService = ConfigService.getInstance();
 const mongoURI = configService.get('MONGO_URI');
@@ -15,7 +16,8 @@ const mongoURI = configService.get('MONGO_URI');
     ScheduleModule.forRoot(),
     WeatherModule,
     AirQualityModule,
-    AuthModule
+    AuthModule,
+    EcoModule
   ],
 })
 export class AppModule {}
