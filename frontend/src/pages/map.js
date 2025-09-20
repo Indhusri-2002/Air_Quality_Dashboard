@@ -283,7 +283,7 @@ export default function Map() {
           box-shadow: 0 4px 25px rgba(33, 150, 243, 0.15);
           position: sticky;
           top: 0;
-          z-index: 1000;
+          // z-index: 1000;
         }
 
         .header-content {

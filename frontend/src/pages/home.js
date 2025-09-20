@@ -103,10 +103,10 @@ const Home = () => {
       {/* Scoped CSS */}
       <style jsx>{`
         .home-bg {
-          min-height: 100vh;
+          width: 100%;
+          min-height: calc(100vh - 80px);
           display: flex;
           justify-content: center;
-          align-items: center;
           background: url("/home.jpg") no-repeat center center/cover;
           padding: 20px;
         }
@@ -118,71 +118,133 @@ const Home = () => {
           flex-direction: column;
           align-items: center;
           gap: 20px;
+          margin-top: 80px;
         }
 
         .controls {
           width: 100%;
           display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 20px;
+          flex-direction: column;
+          gap: 15px;
+          padding: 20px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(10px);
+          border-radius: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (min-width: 768px) {
+          .controls {
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+          }
         }
 
         .search-bar {
           display: flex;
-          gap: 10px;
+          flex-direction: column;
+          gap: 12px;
           flex: 1;
+        }
+
+        @media (min-width: 576px) {
+          .search-bar {
+            flex-direction: row;
+            gap: 10px;
+          }
         }
 
         input {
           flex: 1;
-          padding: 10px 14px;
-          border-radius: 8px;
-          border: none;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.3);
           outline: none;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-          font-size: 14px;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          font-size: 15px;
+          transition: all 0.3s ease;
+        }
+
+        input:focus {
+          border-color: #0070f3;
+          box-shadow: 0 4px 20px rgba(0, 112, 243, 0.2);
+          transform: translateY(-1px);
+        }
+
+        input::placeholder {
+          color: #666;
         }
 
         button {
-          padding: 10px 18px;
+          padding: 12px 20px;
           border: none;
-          border-radius: 8px;
-          background: #0070f3;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #0070f3, #0059c1);
           color: white;
-          font-weight: bold;
+          font-weight: 600;
           cursor: pointer;
-          transition: background 0.2s ease-in-out;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 16px rgba(0, 112, 243, 0.3);
+          font-size: 15px;
         }
 
         button:disabled {
-          background: #a0a0a0;
+          background: linear-gradient(135deg, #a0a0a0, #888);
           cursor: not-allowed;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         button:hover:not(:disabled) {
-          background: #0059c1;
+          background: linear-gradient(135deg, #0059c1, #004494);
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(0, 112, 243, 0.4);
+        }
+
+        button:active:not(:disabled) {
+          transform: translateY(0);
         }
 
         select {
-          padding: 10px 14px;
-          border-radius: 8px;
-          border: none;
+          padding: 12px 16px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.3);
           outline: none;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-          font-size: 14px;
-          background: white;
+          background: rgba(255, 255, 255, 0.9);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          min-width: 140px;
+        }
+
+        select:focus {
+          border-color: #0070f3;
+          box-shadow: 0 4px 20px rgba(0, 112, 243, 0.2);
+          transform: translateY(-1px);
         }
 
         .glass-card {
           width: 100%;
-          padding: 20px;
-          border-radius: 16px;
-          background: rgba(255, 255, 255, 0.15);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+          position: relative;
+          border-radius: 20px;
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(15px);
+          -webkit-backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+          transition: all 0.3s ease;
+          overflow: hidden;
+        }
+
+        .glass-card:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 16px 50px rgba(0, 0, 0, 0.2);
         }
       `}</style>
     </div>

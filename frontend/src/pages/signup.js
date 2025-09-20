@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { saveToken, isLoggedIn } from "@/utils/auth";
 
+const BACKEND_API_URL = process.env.BACKEND_API_URL;
+
 export default function SignupPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -21,7 +23,7 @@ export default function SignupPage() {
       return;
     }
     try {
-      const res = await fetch("http://localhost:3000/auth/signup", {
+      const res = await fetch(`${BACKEND_API_URL}/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -29,7 +31,7 @@ export default function SignupPage() {
       if (!res.ok) throw new Error("Signup failed");
       await res.json();
 
-      const loginRes = await fetch("http://localhost:3000/auth/login", {
+      const loginRes = await fetch(`${BACKEND_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
